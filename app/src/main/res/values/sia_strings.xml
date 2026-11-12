@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SIA: overrides of upstream strings. Kept in the app module so that upstream files stay untouched. -->
+<resources>
+    <string name="screen_onboarding_welcome_title">"Private by design"</string>
+    <string name="screen_onboarding_welcome_message">"Welcome to %1$s. Encrypted messaging for you and your friends."</string>
+</resources>

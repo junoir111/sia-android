@@ -1,0 +1,41 @@
+name: SIA build
+
+# The only workflow used by the SIA fork. It builds a test APK (F-Droid flavour: no Google services).
+on:
+  workflow_dispatch:
+  push:
+    branches: [ sia ]
+
+permissions:
+  contents: read
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8 -XX:+UseG1GC -Dkotlin.daemon.jvm.options=-Xmx4g
+
+concurrency:
+  group: sia-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build test APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup build environment
+        uses: ./.github/actions/setup-build
+        with:
+          free-disk-space: 'true'
+          gradle-cache-read-only: 'false'
+      - name: Assemble debug APK
+        run: ./gradlew :app:assembleFdroidDebug --stacktrace --no-configuration-cache
+      - name: Upload APK
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sia-debug
+          path: app/build/outputs/apk/fdroid/debug/*-universal-debug.apk
+          if-no-files-found: error
+          retention-days: 14

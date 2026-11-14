@@ -38,12 +38,12 @@ val SemanticColors.placeholderBackground
 // This color is not present in Semantic color, so put hard-coded value for now
 @OptIn(CoreColorToken::class)
 val SemanticColors.messageFromMeBackground
-    get() = if (isLight) LightColorTokens.colorGray400 else DarkColorTokens.colorGray500
+    get() = if (isLight) LightColorTokens.colorGray400 else Color(0xFF0F3A24) // SIA: deep green
 
 // This color is not present in Semantic color, so put hard-coded value for now
 @OptIn(CoreColorToken::class)
 val SemanticColors.messageFromOtherBackground
-    get() = if (isLight) LightColorTokens.colorGray300 else DarkColorTokens.colorGray400
+    get() = if (isLight) LightColorTokens.colorGray300 else Color(0xFF16241B) // SIA: dark card green
 
 // This color is not present in Semantic color, so put hard-coded value for now
 @OptIn(CoreColorToken::class)
@@ -57,7 +57,7 @@ val SemanticColors.temporaryColorBgSpecial
 // This color is not present in Semantic color, so put hard-coded value for now
 @OptIn(CoreColorToken::class)
 val SemanticColors.pinDigitBg
-    get() = if (isLight) LightColorTokens.colorGray300 else DarkColorTokens.colorGray400
+    get() = if (isLight) LightColorTokens.colorGray300 else Color(0xFF16241B) // SIA: dark card green
 
 @OptIn(CoreColorToken::class)
 val SemanticColors.pinnedMessageBannerIndicator

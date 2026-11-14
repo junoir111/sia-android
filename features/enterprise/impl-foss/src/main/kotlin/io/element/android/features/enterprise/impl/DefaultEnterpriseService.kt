@@ -64,7 +64,8 @@ class DefaultEnterpriseService(
     }
 
     override fun semanticColorsFlow(sessionId: SessionId?): Flow<SemanticColorsLightDark> {
-        return flowOf(SemanticColorsLightDark.default)
+        // SIA: always the "Code vert" theme.
+        return flowOf(siaColorsLightDark)
     }
 
     override fun firebasePushGateway(): String? = null

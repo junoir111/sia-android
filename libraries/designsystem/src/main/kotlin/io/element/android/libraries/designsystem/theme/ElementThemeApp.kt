@@ -12,18 +12,13 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.theme.Theme
-import io.element.android.compound.theme.mapToTheme
 import io.element.android.compound.tokens.generated.SemanticColors
 import io.element.android.libraries.core.meta.BuildMeta
 import io.element.android.libraries.core.meta.BuildType
 import io.element.android.libraries.featureflag.api.FeatureFlagService
-import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.preferences.api.store.AppPreferencesStore
 
 val LocalBuildMeta = staticCompositionLocalOf {
@@ -61,12 +56,8 @@ fun ElementThemeApp(
     buildMeta: BuildMeta,
     content: @Composable () -> Unit,
 ) {
-    val isBlackThemeAllowed by remember {
-        featureFlagService.isFeatureEnabledFlow(FeatureFlags.AllowBlackTheme)
-    }.collectAsState(initial = false)
-    val theme by remember(isBlackThemeAllowed) {
-        appPreferencesStore.getThemeFlow().mapToTheme(allowBlackTheme = isBlackThemeAllowed)
-    }.collectAsState(initial = Theme.System)
+    // SIA: the app is always dark ("Code vert" theme), whatever the phone or app setting.
+    val theme = Theme.Dark
     LaunchedEffect(theme) {
         AppCompatDelegate.setDefaultNightMode(
             when (theme) {

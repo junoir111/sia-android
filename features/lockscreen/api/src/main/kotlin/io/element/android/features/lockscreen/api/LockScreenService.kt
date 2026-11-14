@@ -11,11 +11,8 @@ package io.element.android.features.lockscreen.api
 import android.os.Build
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 
 /**
  * Exposes the app lock state: whether a PIN or biometric lock is set up, whether it is mandatory, and whether the app is locked right now.
@@ -44,20 +41,12 @@ interface LockScreenService {
  * @param activity the activity to set the flag on.
  */
 fun LockScreenService.handleSecureFlag(activity: ComponentActivity) {
-    isPinSetup()
-        .onEach { isPinSetup ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                activity.setRecentsScreenshotEnabled(!isPinSetup)
-            } else {
-                if (isPinSetup) {
-                    activity.window.setFlags(
-                        WindowManager.LayoutParams.FLAG_SECURE,
-                        WindowManager.LayoutParams.FLAG_SECURE
-                    )
-                } else {
-                    activity.window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                }
-            }
-        }
-        .launchIn(activity.lifecycleScope)
+    // SIA: screenshots, screen recording and the "recent apps" preview are always blocked, PIN or not.
+    activity.window.setFlags(
+        WindowManager.LayoutParams.FLAG_SECURE,
+        WindowManager.LayoutParams.FLAG_SECURE
+    )
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        activity.setRecentsScreenshotEnabled(false)
+    }
 }

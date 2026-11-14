@@ -13,7 +13,7 @@ import kotlin.time.Duration.Companion.minutes
 
 object LockScreenConfig {
     /** Whether the PIN is mandatory or not. */
-    const val IS_PIN_MANDATORY: Boolean = false
+    const val IS_PIN_MANDATORY: Boolean = true // SIA: secret code required to open the app
 
     /** Set of forbidden PIN codes. */
     val FORBIDDEN_PIN_CODES: Set<String> = setOf("0000", "1234")

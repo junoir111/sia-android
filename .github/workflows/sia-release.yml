@@ -1,0 +1,30 @@
+name: SIA test release
+
+# Publishes the latest successful "SIA build" APK as a pre-release when a tag named essai-* is pushed.
+# The APK is a debug build signed with the public debug key: for personal testing only.
+on:
+  push:
+    tags: [ 'essai-*' ]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  release:
+    name: Publish test APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Publish the latest APK built on the sia branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          run_id=$(gh run list --workflow sia-build.yml --branch sia --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          test -n "$run_id"
+          gh run download "$run_id" --name sia-debug --dir apk
+          mv apk/*.apk "SIA-$TAG.apk"
+          gh release create "$TAG" "SIA-$TAG.apk" --prerelease --title "SIA $TAG (test)" \
+            --notes "Version d'essai, pour test personnel uniquement. Fabriquée par l'exécution $run_id."

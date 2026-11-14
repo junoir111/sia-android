@@ -63,7 +63,10 @@ import io.element.android.libraries.matrix.api.room.powerlevels.permissionsAsSta
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
+import io.element.android.features.messages.impl.timeline.sia.EphemeralMessagesFilter
+import io.element.android.features.messages.impl.timeline.sia.ephemeralClock
 import io.element.android.libraries.matrix.api.timeline.item.event.LocalEventSendState
+import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.TimelineItemEventOrigin
 import io.element.android.libraries.preferences.api.store.SessionPreferencesStore
 import io.element.android.libraries.ui.strings.CommonStrings
@@ -80,6 +83,8 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
@@ -407,7 +412,21 @@ class TimelinePresenter(
                 .onEach { eventIdsToDeselect -> selectionState.value = selectionState.value.deselect(eventIdsToDeselect) }
                 .launchIn(this)
 
-            timelineController.timelineItems()
+            // SIA: messages disappear 5 s after being sent; our own ones are also deleted from the server.
+            val ephemeralFilter = EphemeralMessagesFilter()
+            combine(timelineController.timelineItems(), ephemeralClock()) { items, now -> ephemeralFilter.process(items, now) }
+                .onEach { result ->
+                    result.ownEventsToDelete.forEach { eventId ->
+                        sessionCoroutineScope.launch {
+                            timelineController.invokeOnCurrentTimeline {
+                                redactEvent(eventId.toEventOrTransactionId(), reason = null)
+                                    .onFailure { Timber.tag(tag).w(it, "Could not delete ephemeral message $eventId") }
+                            }
+                        }
+                    }
+                }
+                .map { result -> result.visibleItems }
+                .distinctUntilChanged()
                 .onEach { items ->
                     val parent = analyticsService.getLongRunningTransaction(DisplayFirstTimelineItems)
                     val transaction = parent?.startChild("timelineItemsFactory.replaceWith", "Processing timeline items")

@@ -22,6 +22,13 @@ import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
+import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
+import io.element.android.libraries.matrix.api.timeline.item.event.LiveLocationContent
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
+import io.element.android.libraries.matrix.api.timeline.item.event.PollContent
+import io.element.android.libraries.matrix.api.timeline.item.event.RedactedContent
+import io.element.android.libraries.matrix.api.timeline.item.event.StickerContent
+import io.element.android.libraries.matrix.api.timeline.item.event.UnableToDecryptContent
 import io.element.android.libraries.matrix.ui.model.dmUserStatus
 import io.element.android.libraries.matrix.ui.model.getAvatarData
 import io.element.android.libraries.matrix.ui.model.toInviteSender
@@ -93,7 +100,7 @@ class RoomListRoomSummaryFactory(
             }
             is LatestEventValue.Local -> {
                 if (latestEvent.isSending) {
-                    val content = roomLatestEventFormatter.format(latestEvent, dm).orEmpty()
+                    val content = if (latestEvent.content.isSiaEphemeral()) "" else roomLatestEventFormatter.format(latestEvent, dm).orEmpty()
                     LatestEvent.Sending(
                         content = content,
                     )
@@ -102,7 +109,8 @@ class RoomListRoomSummaryFactory(
                 }
             }
             is LatestEventValue.Remote -> {
-                val content = roomLatestEventFormatter.format(latestEvent, dm).orEmpty()
+                // SIA: never show the text of an ephemeral message in the room list.
+                val content = if (latestEvent.content.isSiaEphemeral()) "" else roomLatestEventFormatter.format(latestEvent, dm).orEmpty()
                 LatestEvent.Synced(
                     content = content,
                 )
@@ -111,3 +119,11 @@ class RoomListRoomSummaryFactory(
         }
     }
 }
+
+/** SIA: content that people wrote or sent (it disappears after 5 s, so it is never previewed). */
+private fun EventContent.isSiaEphemeral(): Boolean = this is MessageContent ||
+    this is StickerContent ||
+    this is PollContent ||
+    this is RedactedContent ||
+    this is UnableToDecryptContent ||
+    this is LiveLocationContent

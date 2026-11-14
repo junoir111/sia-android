@@ -30,6 +30,8 @@ jobs:
         with:
           free-disk-space: 'true'
           gradle-cache-read-only: 'false'
+      - name: Test SIA features
+        run: ./gradlew :features:messages:impl:testDebugUnitTest --tests '*.sia.*' --stacktrace --no-configuration-cache
       - name: Assemble debug APK
         run: ./gradlew :app:assembleFdroidDebug --stacktrace --no-configuration-cache
       - name: Upload APK

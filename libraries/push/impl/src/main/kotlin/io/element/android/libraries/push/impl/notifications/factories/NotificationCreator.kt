@@ -203,7 +203,9 @@ class DefaultNotificationCreator(
         )
         // Always set it, since the style may have been extracted from an existing notification
         messagingStyle.conversationTitle = createConversationTitle(roomInfo, threadId)
+        // SIA: messages are ephemeral, so their text and images never appear in notifications.
         val newEvents = messagingStyle.filterOutAlreadyDisplayedEvents(events)
+            .map { it.copy(body = SIA_HIDDEN_MESSAGE_TEXT, imageUriString = null, imageMimeType = null) }
         messagingStyle.addMessagesFromEvents(newEvents, imageLoader)
         return builder
             .setCategory(category)
@@ -250,7 +252,7 @@ class DefaultNotificationCreator(
                     addAction(quickReplyActionFactory.create(roomInfo, latestEventId, threadId))
                 }
             }
-            .setTicker(tickerText)
+            .setTicker(SIA_HIDDEN_MESSAGE_TEXT)
             .build()
     }
 
@@ -584,3 +586,6 @@ private fun NotificationCompat.Builder.configureWith(notificationAccountParams: 
 }
 
 fun NotifiableMessageEvent.isSmartReplyError() = outGoingMessage && outGoingMessageFailed
+
+/** SIA: generic text shown instead of the content of a message. */
+private const val SIA_HIDDEN_MESSAGE_TEXT = "Nouveau message"
